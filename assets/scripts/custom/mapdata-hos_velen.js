@@ -1,9 +1,9 @@
-window.map_path   = 'velen';
+window.map_path   = 'hos_velen';
 window.map_sWest  = L.latLng(0, 0);
 window.map_nEast  = L.latLng(256, 224);
 window.map_center = [120, 120];
 window.map_mZoom  = 6;
-window.mapdata_velen = {
+window.mapdata_hos_velen = {
 // Abandoned Site
 	abandoned: [{
 		coords: [

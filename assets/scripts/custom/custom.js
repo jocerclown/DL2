@@ -31,6 +31,7 @@ $(function() {
 		markers.smugglers,
 		markers.sidequests,
 		markers.contracts,
+		markers.vineyardinfestation,
 		markers.vintnercontract,
 		markers.spoils
 	];
@@ -96,14 +97,14 @@ $(function() {
 		layers: allLayers
 	};
 
-	if (map_path === 'velen' || map_path === 'toussaint'){
+	if (map_path === 'velen' || map_path === 'hos_velen' || map_path === 'toussaint' || map_path === 'kaer_morhen'){
 		map_settings['crs'] = L.CRS.Simple;
 	}
 
 	var map = L.map('map', map_settings);
 
-	var go = function (cords) {
-		map.panTo(cords);
+	window.go = function (cords) {
+		map.setView(cords);
 		map.setZoom(window.map_mZoom);
 		new L.marker(cords, {
 			icon : L.icon({
@@ -120,21 +121,12 @@ $(function() {
 	map.setMaxBounds(bounds);
 
 	if (!mobile) {
+
 		var searchData = [];
 		$.each(allLayers, function(key, layer) {
 			$.each(layer._layers, function(key, marker) {
 				searchData.push({ loc : [marker._latlng.lat,marker._latlng.lng] , title : marker._popup._content.replace(/<h1>/, '').replace(/<\/h1>/, ' - ').replace(/\\'/g, '') });
 			});
-		});
-
-		searchData.sort(function(a,b) {
-			if (a.title < b.title) {
-				return -1;
-			}
-			if (a.title > b.title) {
-				return 1;
-			}
-			return 0;
 		});
 
 		map.addControl(new L.Control.Search({
@@ -147,9 +139,23 @@ $(function() {
 			text         : $.t('controls.searchButton'),
 			filterJSON   : function(json){ return json; },
 			callData     : function(text, callResponse) {
-				callResponse($.grep(searchData, function(data) {
-					return data.title.match(new RegExp(text, 'i'));
-				}));
+
+				var options = {
+					caseSensitive: false,
+					includeScore: false,
+					shouldSort: true,
+					tokenize: false,
+					threshold: 0.2,
+					location: 0,
+					distance: 10000,
+					maxPatternLength: 32,
+					keys: ["title"]
+				};
+				var fuse = new Fuse(searchData, options);
+				var result= fuse.search(text);
+
+				callResponse(result);
+
 				setTimeout(function() {
 					$('.search-tooltip').getNiceScroll().resize();
 				},200);
@@ -170,7 +176,7 @@ $(function() {
 		noWrap: true
 	};
 
-	if (map_path === 'velen' || map_path === 'toussaint'){
+	if (map_path === 'velen' || map_path === 'hos_velen' || map_path === 'toussaint' || map_path === 'kaer_morhen'){
 		layer_settings['continuousWorld'] = true;
 		layer_settings['crs'] = L.CRS.Simple;
 	}
@@ -229,7 +235,7 @@ $(function() {
 		//only add param and show center button if not a note
 		if(!notes[map_path][getNoteIndex(noteKey)]) {
 			hash.addParam('m', lat + ',' + lng);
-		 	$('#centerButton').show();
+			$('#centerButton').show();
 		}
 		circle = L.circleMarker(L.latLng(lat, lng), {
 			color: 'red',
@@ -494,31 +500,31 @@ $(function() {
 		popup('Credits', [
 			'<p>Created by <a href="https://github.com/untamed0" target="_blank">untamed0</a>, with contributions from:</p>',
 			'<ul>',
-				'<li><a href="https://github.com/mcarver" target="_blank">mcarver</a> (lead contributor) - Marker count, hash permalink improvements, backup/restore settings, numerous fixes etc</li>',
-				'<li><a href="https://github.com/ankri" target="_blank">ankri</a> - Ability to hide markers on right or double click</li>',
-				'<li><a href="https://github.com/ITroxxCH" target="_blank">ITroxxCH</a> - Translation/i18n implementation</li>',
-				'<li><a href="https://github.com/msmorgan" target="_blank">msmorgan</a> - Javascript &amp; map data structure improvements</li>',
-				'<li><a href="https://twitter.com/DesignGears" target="_blank">@DesignGears</a> &amp <a href="https://github.com/hhrhhr" target="_blank">hhrhhr</a> - Map &amp; asset extraction</li>',
+			'<li><a href="https://github.com/mcarver" target="_blank">mcarver</a> (lead contributor) - Marker count, hash permalink improvements, backup/restore settings, numerous fixes etc</li>',
+			'<li><a href="https://github.com/ankri" target="_blank">ankri</a> - Ability to hide markers on right or double click</li>',
+			'<li><a href="https://github.com/ITroxxCH" target="_blank">ITroxxCH</a> - Translation/i18n implementation</li>',
+			'<li><a href="https://github.com/msmorgan" target="_blank">msmorgan</a> - Javascript &amp; map data structure improvements</li>',
+			'<li><a href="https://twitter.com/DesignGears" target="_blank">@DesignGears</a> &amp <a href="https://github.com/hhrhhr" target="_blank">hhrhhr</a> - Map &amp; asset extraction</li>',
 			'</ul>',
 			'<p>Thanks to the following people for contributions to improving the map data:<br>',
 			'<li><a href="https://wiiare.in" target="_blank">lordfiSh</a> - Toussaint Map Markers</li></p>',
 			'<h3>Translations</h3>',
 			'<ul>',
-				'<li>German - <a href="https://github.com/ITroxxCH" target="_blank">ITroxxCH</a></li>',
+			'<li>German - <a href="https://github.com/ITroxxCH" target="_blank">ITroxxCH</a></li>',
 			'</ul>',
 			'<p>Special thanks to <a href="https://crowdin.com" target="_blank">crowdin</a> for letting us use their excellent translation editor</p>',
 			'<h3>Witcher 3 Assets</h3>',
 			'<p>The Witcher 3, logo, icons, map &amp; text are the property of <a href="http://en.cdprojektred.com/" target="_blank">CD PROJEKT RED</a> and used without permission. Non commercial use is permitted under section 9.4 of their <a href="http://bar.cdprojektred.com/regulations/" target="_blank">User Agreement</a></p>',
 			'<h3>Javascript libraries used</h3>',
 			'<ul>',
-				'<li><a href="http://jquery.com" target="_blank">jQuery</a> (MIT)</li>',
-				'<li><a href="http://git.io/vkLly" target="_blank">jQuery.NiceScroll</a> (MIT)</li>',
-				'<li><a href="http://leafletjs.com" target="_blank">Leaflet</a> (BSD2)</li>',
-				'<li><a href="http://git.io/vkfA2" target="_blank">Leaflet.label</a> (MIT)</li>',
-				'<li><a href="http://git.io/mwK1oA" target="_blank">Leaflet-hash</a> (MIT)</li>',
-				'<li><a href="http://git.io/vJw5v" target="_blank">Leaflet.fullscreen</a> (BSD2)</li>',
-				'<li><a href="http://git.io/vkCPC" target="_blank">Leaflet Control Search</a> (MIT)</li>',
-				'<li><a href="http://git.io/vIAs2" target="_blank">Font Awesome</a> (MIT)</li>',
+			'<li><a href="http://jquery.com" target="_blank">jQuery</a> (MIT)</li>',
+			'<li><a href="http://git.io/vkLly" target="_blank">jQuery.NiceScroll</a> (MIT)</li>',
+			'<li><a href="http://leafletjs.com" target="_blank">Leaflet</a> (BSD2)</li>',
+			'<li><a href="http://git.io/vkfA2" target="_blank">Leaflet.label</a> (MIT)</li>',
+			'<li><a href="http://git.io/mwK1oA" target="_blank">Leaflet-hash</a> (MIT)</li>',
+			'<li><a href="http://git.io/vJw5v" target="_blank">Leaflet.fullscreen</a> (BSD2)</li>',
+			'<li><a href="http://git.io/vkCPC" target="_blank">Leaflet Control Search</a> (MIT)</li>',
+			'<li><a href="http://git.io/vIAs2" target="_blank">Font Awesome</a> (MIT)</li>',
 			'</ul>'
 		].join('\n'));
 	});
@@ -533,7 +539,7 @@ $(function() {
 			if(ellipsis.outerWidth() < ellipsis[0].scrollWidth) {
 				$(this).parent().mousemove(function(e) {
 					var x = e.clientX,
-					y = e.clientY;
+						y = e.clientY;
 
 					// calculate y-position to counteract scroll offset
 					var offset = $("#logo").offset();
@@ -548,7 +554,7 @@ $(function() {
 			}
 
 			$("#sidebar-wrap").append(tooltip);
-	  });
+		});
 		$('ul.controls li:not(.none) i').each(function(i, e) {
 			var key = $(this).next().text();
 			var tooltip = $("<span class='tooltip'>" + key + "</span>");
@@ -557,7 +563,7 @@ $(function() {
 			if(ellipsis.outerWidth() < ellipsis[0].scrollWidth) {
 				$(this).parent().mousemove(function(e) {
 					var x = e.clientX,
-					y = e.clientY;
+						y = e.clientY;
 
 					// calculate y-position to counteract scroll offset
 					var offset = $("#logo").offset();

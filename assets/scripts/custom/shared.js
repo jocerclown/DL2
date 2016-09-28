@@ -11,10 +11,11 @@ var getMapdata = function(mapname) {
 $.i18n.init(i18noptions, function() {
 	var namespace = location.pathname.match(/\/(\w{1})\/(?:index.html)?$/)[1];
 	$.i18n.loadNamespace(namespace, function() {
-		if(namespace == "w") {
+		if (namespace == "w") {
 			getMapdata('white_orchard');
 		} else if (namespace == "v") {
-			getMapdata('velen');
+//			getMapdata('velen');
+			getMapdata('hos_velen');
 		} else if (namespace == "s") {
 			getMapdata('skellige');
 		} else if (namespace == "t") {
@@ -290,9 +291,14 @@ icons.contracts = L.icon({
 	iconSize : [18, 29]
 });
 
+icons.vineyardinfestation = L.icon({
+	iconUrl  : '../files/images/icons/vineyardinfestation.png',
+	iconSize : [28, 32]
+});
+
 icons.vintnercontract = L.icon({
- iconUrl  : '../files/images/icons/vintnercontract.png',
- iconSize : [23, 34]
+	iconUrl  : '../files/images/icons/vintnercontract.png',
+	iconSize : [23, 34]
 });
 
 icons.spoils = L.icon({
